@@ -35,13 +35,15 @@
 </div>
 
 <script>
+    const API_BASE_URL = 'http://127.0.0.1:8000';
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/login/', {
+            const response = await fetch(`${API_BASE_URL}/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -49,15 +51,14 @@
 
             if (response.ok) {
                 const data = await response.json();
-                
                 localStorage.setItem('admin_token', data.access_token);
-                
                 window.location.href = 'dashboard.html';
             } else {
                 alert('❌ نام کاربری یا رمز عبور اشتباه است.');
             }
         } catch (error) {
-            alert('اتصال به اینترنت را چک کنید!');
+            alert('اتصال به سرور برقرار نشد!');
+            console.error(error);
         }
     });
 </script>

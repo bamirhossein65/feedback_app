@@ -90,11 +90,13 @@
     </main>
 
 <script>
+    const API_BASE_URL = 'http://127.0.0.1:8000';   // ← راحت تغییر بده اگر IP سرور فرق کرد
+
     function getCategoryBadge(category) {
         if (category === 'bug') {
-            return `<span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 text-xs px-2.5 py-1 rounded-lg border border-rose-100 font-medium"><i class="fa-solid fa-bug text-[10px]"></i> گزارش خطا</span>`;
+            return `<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs px-2.5 py-1 rounded-lg border border-red-100 font-medium"><i class="fa-solid fa-bug text-[10px]"></i> باگ</span>`;
         } else if (category === 'suggestion') {
-            return `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-lg border border-amber-100 font-medium"><i class="fa-solid fa-lightbulb text-[10px]"></i> پیشنهاد و انتقاد</span>`;
+            return `<span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-lg border border-blue-100 font-medium"><i class="fa-solid fa-lightbulb text-[10px]"></i> پیشنهاد</span>`;
         } else if (category === 'other') {
             return `<span class="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs px-2.5 py-1 rounded-lg border border-teal-100 font-medium"><i class="fa-solid fa-envelope text-[10px]"></i> سایر موارد</span>`;
         }
@@ -103,15 +105,29 @@
 
     async function loadFeedbacks() {
         const token = localStorage.getItem('admin_token');
-        if (!token) { window.location.href = 'login.html'; return; }
+        if (!token) { 
+            window.location.href = 'login.html'; 
+            return; 
+        }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/feedbacks/', {
+            const response = await fetch(`${API_BASE_URL}/api/feedbacks/`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
-            if (response.status === 401) { logout(); return; }
+            if (response.status === 401) { 
+                alert("نشست شما منقضی شده است.");
+                logout(); 
+                return; 
+            }
+
+            if (!response.ok) {
+                throw new Error('خطا در دریافت داده');
+            }
 
             const feedbacks = await response.json();
             const tableBody = document.getElementById('feedbackTableBody');
@@ -161,6 +177,7 @@
             console.error('خطا در بارگذاری اطلاعات:', error);
         }
     }
+
     async function deleteFeedback(feedbackId) {
         if (!confirm("آیا از حذف این فیدبک مطمئن هستید؟")) return;
 
@@ -168,10 +185,11 @@
         if (!token) { window.location.href = 'login.html'; return; }
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/feedbacks/${feedbackId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/feedbacks/${feedbackId}`, {
                 method: 'DELETE',
                 headers: { 
-                    'Authorization': `Bearer ${token}` 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -193,7 +211,8 @@
         window.location.href = 'login.html';
     }
 
-    loadFeedbacks();
+    // اجرا هنگام لود
+    window.onload = loadFeedbacks;
 </script>
 </body>
 </html>
