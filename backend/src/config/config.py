@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     PROJECT_NAME: str = "Feedback System"
     ENVIRONMENT: str = "development"
+    DEFAULT_ADMIN_USERNAME: str = "admin"
+    DEFAULT_ADMIN_PASSWORD: str = "admin1234"
 
     model_config = SettingsConfigDict(
         env_file=".env", 
