@@ -68,7 +68,7 @@
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 class="font-bold text-slate-700">لیست آخرین پیام‌های دریافتی از کاربران</h3>
                 <button onclick="loadFeedbacks()" class="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-xl transition text-xs font-semibold border border-indigo-100">
-                    <i class="fa-solid fa-rotate animate-duration-500"></i> بروزرسانی لیست
+                    <i class="fa-solid fa-rotate"></i> بروزرسانی لیست
                 </button>
             </div>
             
@@ -80,7 +80,8 @@
                             <th class="p-4 w-40">مشخصات کاربر</th>
                             <th class="p-4 w-36">نوع فیدبک</th>
                             <th class="p-4">متن پیام دریافتی</th>
-                            <th class="p-4 w-20 text-center">عملیات</th> </tr>
+                            <th class="p-4 w-20 text-center">عملیات</th>
+                        </tr>
                     </thead>
                     <tbody id="feedbackTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
                         </tbody>
@@ -90,18 +91,8 @@
     </main>
 
 <script>
-    const API_BASE_URL = 'http://127.0.0.1:8000';   // ← راحت تغییر بده اگر IP سرور فرق کرد
-
-    function getCategoryBadge(category) {
-        if (category === 'bug') {
-            return `<span class="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs px-2.5 py-1 rounded-lg border border-red-100 font-medium"><i class="fa-solid fa-bug text-[10px]"></i> باگ</span>`;
-        } else if (category === 'suggestion') {
-            return `<span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-lg border border-blue-100 font-medium"><i class="fa-solid fa-lightbulb text-[10px]"></i> پیشنهاد</span>`;
-        } else if (category === 'other') {
-            return `<span class="inline-flex items-center gap-1 bg-teal-50 text-teal-700 text-xs px-2.5 py-1 rounded-lg border border-teal-100 font-medium"><i class="fa-solid fa-envelope text-[10px]"></i> سایر موارد</span>`;
-        }
-        return `<span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-lg font-medium">عمومی</span>`;
-    }
+    // 🎯 اصلاح شد: اضافه کردن پیشوند دقیق بک‌اَند شما
+    const API_BASE_URL = 'http://127.0.0.1:8000/api/feedbacks';
 
     async function loadFeedbacks() {
         const token = localStorage.getItem('admin_token');
@@ -110,8 +101,12 @@
             return; 
         }
 
+        const refreshIcon = document.getElementById('refreshIcon');
+        if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
         try {
-            const response = await fetch(`${API_BASE_URL}/api/feedbacks/`, {
+            // ⚠️ درخواست به: http://127.0.0.1:8000/api/feedbacks/
+            const response = await fetch(`${API_BASE_URL}/`, {
                 method: 'GET',
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -120,72 +115,141 @@
             });
 
             if (response.status === 401) { 
-                alert("نشست شما منقضی شده است.");
+                alert("نشست شما منقضی شده است. لطفا مجددا وارد شوید.");
                 logout(); 
                 return; 
             }
 
-            if (!response.ok) {
-                throw new Error('خطا در دریافت داده');
-            }
+            if (!response.ok) throw new Error('خطا در دریافت اطلاعات فیدبک‌ها');
 
             const feedbacks = await response.json();
-            const tableBody = document.getElementById('feedbackTableBody');
-            tableBody.innerHTML = '';
-
-            document.getElementById('totalCount').innerText = feedbacks.length;
-            let bugs = 0, suggestions = 0, others = 0;
-
-            if (feedbacks.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-slate-400 font-medium">تاکنون هیچ فیدبکی ثبت نشده است. 📨</td></tr>`;
-                document.getElementById('bugCount').innerText = 0;
-                document.getElementById('suggestionCount').innerText = 0;
-                document.getElementById('otherCount').innerText = 0;
-                return;
-            }
-
-            feedbacks.forEach((fb, index) => {
-                if (fb.category === 'bug') bugs++;
-                if (fb.category === 'suggestion') suggestions++;
-                if (fb.category === 'other') others++;
-
-                const userName = fb.name ? fb.name : 'ناشناس';
-                const userEmail = fb.email ? `<span class="block text-[11px] text-slate-400 font-mono text-left">${fb.email}</span>` : '';
-
-                const row = `<tr class="hover:bg-slate-50/80 transition duration-150">
-                    <td class="p-4 text-center font-mono text-slate-400">${index + 1}</td>
-                    <td class="p-4 font-medium text-slate-800">
-                        <div>${userName}</div>
-                        ${userEmail}
-                    </td>
-                    <td class="p-4">${getCategoryBadge(fb.category)}</td>
-                    <td class="p-4 text-slate-600 leading-relaxed max-w-xl break-words">${fb.message}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteFeedback(${fb.id})" class="text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition border border-transparent hover:border-rose-100" title="حذف فیدبک">
-                            <i class="fa-solid fa-trash-can text-base"></i>
-                        </button>
-                    </td>
-                </tr>`;
-                tableBody.innerHTML += row;
-            });
-
-            document.getElementById('bugCount').innerText = bugs;
-            document.getElementById('suggestionCount').innerText = suggestions;
-            document.getElementById('otherCount').innerText = others;
+            renderDashboard(feedbacks);
 
         } catch (error) {
-            console.error('خطا در بارگذاری اطلاعات:', error);
+            console.error('خطا در بارگذاری:', error);
+            document.getElementById('feedbackTableBody').innerHTML = `
+                <tr><td colspan="5" class="text-center p-8 text-rose-500 font-medium">❌ خطا در برقراری ارتباط با سرور داکر! مطمئن شوید بک‌اَند روشن است.</td></tr>
+            `;
+        } finally {
+            if (refreshIcon) refreshIcon.classList.remove('animate-spin');
         }
+    }
+
+    // function renderDashboard(feedbacks) {
+    //     const tbody = document.getElementById('feedbackTableBody');
+    //     tbody.innerHTML = '';
+
+    //     let bug = 0, suggestion = 0, other = 0;
+
+    //     if (!feedbacks || feedbacks.length === 0) {
+    //         tbody.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-slate-400">هیچ فیدبکی در دیتابیس ثبت نشده است.</td></tr>`;
+    //         updateStatCounters(0, 0, 0, 0);
+    //         return;
+    //     }
+    function renderDashboard(feedbacks) {
+    const tbody = document.getElementById('feedbackTableBody');
+    tbody.innerHTML = '';
+
+    let bug = 0, suggestion = 0, other = 0;
+
+    if (!feedbacks || feedbacks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-slate-400">هیچ فیدبکی در دیتابیس ثبت نشده است.</td></tr>`;
+        updateStatCounters(0, 0, 0, 0);
+        return;
+    }
+
+    feedbacks.forEach((item, index) => {
+
+        const feedbackType = item.type ? item.type.toLowerCase().trim() : 'other';
+
+        if (feedbackType === 'bug') bug++;
+        else if (feedbackType === 'suggestion') suggestion++;
+        else other++;
+
+        let typeBadge = '';
+        if (feedbackType === 'bug') {
+            typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100">🐛 گزارش باگ</span>`;
+        } else if (feedbackType === 'suggestion') {
+            typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100">💡 پیشنهاد</span>`;
+        } else {
+            typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-600 border border-teal-100">📨 سایر موارد</span>`;
+        }
+
+        const row = `
+            <tr class="hover:bg-slate-50/80 transition">
+                <td class="p-4 text-center font-medium text-slate-400">${index + 1}</td>
+                <td class="p-4">
+                    <div class="font-semibold text-slate-800">${item.name || 'کاربر مهمان'}</div>
+                    <div class="text-xs text-slate-400 mt-0.5">${item.email || 'بدون ایمیل'}</div>
+                </td>
+                <td class="p-4">${typeBadge}</td>
+                <td class="p-4 text-slate-600 leading-relaxed">${item.message || 'بدون متن پیام'}</td>
+                <td class="p-4 text-center">
+                    <button onclick="deleteFeedback(${item.id})" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-2 rounded-xl transition text-xs" title="حذف فیدبک">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
+
+    updateStatCounters(feedbacks.length, bug, suggestion, other);
+}
+    
+
+        feedbacks.forEach((item, index) => {
+            if (item.type === 'bug') bug++;
+            else if (item.type === 'suggestion') suggestion++;
+            else other++;
+
+            let typeBadge = '';
+            if (item.type === 'bug') {
+                typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-100">🐛 گزارش باگ</span>`;
+            } else if (item.type === 'suggestion') {
+                typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100">💡 پیشنهاد</span>`;
+            } else {
+                typeBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-600 border border-teal-100">📨 سایر موارد</span>`;
+            }
+
+            const row = `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-4 text-center font-medium text-slate-400">${index + 1}</td>
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-800">${item.name || 'کاربر مهمان'}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${item.email || 'بدون ایمیل'}</div>
+                    </td>
+                    <td class="p-4">${typeBadge}</td>
+                    <td class="p-4 text-slate-600 leading-relaxed">${item.message || 'بدون متن پیام'}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteFeedback(${item.id})" class="text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 p-2 rounded-xl transition text-xs" title="حذف فیدبک">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+
+        updateStatCounters(feedbacks.length, bug, suggestion, other);
+    
+
+    function updateStatCounters(total, bug, suggestion, other) {
+        document.getElementById('totalCount').innerText = total;
+        document.getElementById('bugCount').innerText = bug;
+        document.getElementById('suggestionCount').innerText = suggestion;
+        document.getElementById('otherCount').innerText = other;
     }
 
     async function deleteFeedback(feedbackId) {
         if (!confirm("آیا از حذف این فیدبک مطمئن هستید؟")) return;
 
         const token = localStorage.getItem('admin_token');
-        if (!token) { window.location.href = 'login.html'; return; }
+        if (!token) return logout();
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/feedbacks/${feedbackId}`, {
+            
+            const response = await fetch(`${API_BASE_URL}/${feedbackId}`, {
                 method: 'DELETE',
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -194,15 +258,15 @@
             });
 
             if (response.ok) {
-                loadFeedbacks();
+                loadFeedbacks(); 
             } else if (response.status === 401) {
-                alert("نشست شما منقضی شده است. لطفا دوباره وارد شوید.");
                 logout();
             } else {
-                alert("❌ خطایی در حذف فیدبک رخ داد.");
+                alert('خطا در حذف فیدبک رخ داده است.');
             }
         } catch (error) {
-            alert("❌ خطا در اتصال به سرور جهت حذف داده.");
+            console.error('Error deleting feedback:', error);
+            alert('ارتباط با سرور برقرار نشد.');
         }
     }
 
@@ -211,7 +275,6 @@
         window.location.href = 'login.html';
     }
 
-    // اجرا هنگام لود
     window.onload = loadFeedbacks;
 </script>
 </body>

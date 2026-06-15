@@ -9,7 +9,11 @@ from src.config.config import settings
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.PROJECT_NAME, lifespan=database_lifespan)
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    #lifespan for registering the initial admin user
+    lifespan=database_lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +21,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # router connections

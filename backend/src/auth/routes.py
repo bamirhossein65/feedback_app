@@ -13,8 +13,9 @@ router = APIRouter(prefix="/login", tags=["login"])
 # Login route
 @router.post("/", response_model=TokenResponse)
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+
     admin = crud_login.get_admin_by_username(db, login_data.username)
-    if not admin or not verify_password(admin.hashed_password, login_data.password):
+    if not admin or not verify_password(login_data.password, admin.hashed_password):
         raise HTTPException(status_code=401, detail="نام کاربری یا رمز عبور اشتباه است")
     
     token_data = {"sub": admin.username}

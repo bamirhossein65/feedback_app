@@ -11,10 +11,6 @@ def create_initial_admin(db: Session):
     
     if not existing_admin:
 
-        print("--- DEBUG START (Initial Admin) ---")
-        print(f"Password Value: {DEFAULT_PASSWORD}")
-        print(f"Password Length: {len(DEFAULT_PASSWORD)}")
-
         hashed_pass = get_password_hash(DEFAULT_PASSWORD)
         
         new_admin = Admin(

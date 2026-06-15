@@ -39,10 +39,11 @@
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
         try {
+            // fetch request to the backend login endpoint
             const response = await fetch(`${API_BASE_URL}/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,13 +52,15 @@
 
             if (response.ok) {
                 const data = await response.json();
+                // save token in browser
                 localStorage.setItem('admin_token', data.access_token);
+                
                 window.location.href = 'dashboard.html';
             } else {
                 alert('❌ نام کاربری یا رمز عبور اشتباه است.');
             }
         } catch (error) {
-            alert('اتصال به سرور برقرار نشد!');
+            alert('اتصال به سرور داکر برقرار نشد! مطمئن شوید با داکر کامپوز پروژه بالا آمده است.');
             console.error(error);
         }
     });

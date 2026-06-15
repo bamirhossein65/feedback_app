@@ -2,7 +2,7 @@ import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta, timezone
 from src.config.config import settings
-# در فایل token.py یا security.py
+
 def get_password_hash(password: str) -> str:
     
     password_bytes = password.encode('utf-8')
@@ -13,7 +13,7 @@ def get_password_hash(password: str) -> str:
     
     return hashed_password_bytes.decode('utf-8')
 
-def verify_password(hashed_password:str,plain_password:str):
+def verify_password(plain_password:str,hashed_password:str):
     hashed_password_bytes = hashed_password.encode('utf-8')
     plain_password_bytes = plain_password.encode('utf-8')
     
