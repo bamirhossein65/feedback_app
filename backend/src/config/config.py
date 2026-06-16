@@ -10,10 +10,10 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_USERNAME: str = "admin"
     DEFAULT_ADMIN_PASSWORD: str = "admin1234"
 
-    model_config = SettingsConfigDict(
-        env_file=".env", 
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
+    # model_config = SettingsConfigDict(
+    #     env_file=".env", 
+    #     env_file_encoding="utf-8",
+    #     extra="ignore"
+    # )
 
 settings = Settings()

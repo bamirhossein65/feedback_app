@@ -23,6 +23,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/feedback_db
       - SECRET_KEY=klfjdJIHi130#kghgfg*&@#$!*)^$ghbxclfj!@$%^(*jhkdfjh)
       - ALGORITHM=HS256
+      - DEFAULT_ADMIN_USERNAME=admin
+      - DEFAULT_ADMIN_PASSWORD=admin1234
     depends_on:
       - postgres
     restart: unless-stopped

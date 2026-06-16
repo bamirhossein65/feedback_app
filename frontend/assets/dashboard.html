@@ -126,7 +126,7 @@
         } catch (error) {
             console.error('خطا در بارگذاری:', error);
             document.getElementById('feedbackTableBody').innerHTML = `
-                <tr><td colspan="5" class="text-center p-8 text-rose-500 font-medium">❌ خطا در برقراری ارتباط با سرور داکر! مطمئن شوید بک‌اَند روشن است.</td></tr>
+                <tr><td colspan="5" class="text-center p-8 text-rose-500 font-medium">❌ خطا در برقراری ارتباط</td></tr>
             `;
         } finally {
             if (refreshIcon) refreshIcon.classList.remove('animate-spin');
